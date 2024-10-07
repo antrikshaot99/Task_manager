@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskFlow Dashboard</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #000;
+            background-image: url(bck_one.webp);
+            color: white;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .page {
+            padding: 20px;
+        }
+
+        .login-container {
+            width: 300px;
+            margin: 100px auto;
+            padding: 20px;
+            background: #333;
+            border-radius: 8px;
+            text-align: center;
+            color: white;
+        }
+
+        .login-container h1 {
+            margin-bottom: 20px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            padding: 10px 15px;
+            background-color: #2b7a78;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #3aafa9;
+        }
+
+        .error-msg {
+            color: red;
+            margin-top: 10px;
+        }
+
+        .sidebar {
+            width: 200px;
+            background-color: #2b7a78;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            padding-top: 20px;
+            z-index: 10;
+            transition: width 0.3s;
+        }
+
+        .sidebar.collapsed {
+            width: 50px;
+        }
+
+        .sidebar nav ul {
+            list-style-type: none;
+        }
+
+        .sidebar nav ul li {
+            margin-bottom: 20px;
+        }
+
+        .sidebar nav ul li a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            padding: 10px 20px;
+            transition: background 0.3s;
+        }
+
+        .sidebar nav ul li a:hover {
+            background-color: #3aafa9;
+        }
+
+        .sidebar-toggle {
+            position: absolute;
+            top: 20px;
+            right: -30px;
+            background-color: #2b7a78;
+            border: none;
+            cursor: pointer;
+            color: white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .content {
+            margin-left: 220px;
+            padding: 20px;
+            transition: margin-left 0.3s;
+        }
+
+        .content.collapsed {
+            margin-left: 70px;
+        }
+
+        header {
+            background-color: #222;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+        }
+
+        .task-card {
+            background-color: #333;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1);
+            width: 30%;
+            margin: 15px;
+            padding: 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .task-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(255, 255, 255, 0.2);
+        }
+
+        .manage-employee-container {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .manage-employee-container h3 {
+            color: #3aafa9;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Page -->
+    <div id="login-page" class="page">
+        <div class="login-container">
+            <h1>TASKFLOW</h1>
+            <form id="loginForm">
+                <input type="text" id="username" placeholder=" Username" required>
+                <input type="password" id="password" placeholder="Password" required>
+                <select id="role" required>
+                    <option value="" disabled selected>Select Role</option>
+                    <option value="admin">Admin</option>
+                    <option value="employee">Employee</option>
+                </select>
+                <button type="submit">Login</button>
+                <p id="login-error" class="error-msg"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="admin-dashboard" class="page hidden">
+        <header>
+            <h2>Admin Dashboard</h2>
+            <button id="logout-btn">Logout</button>
+        </header>
+        <div class="sidebar" id="sidebar">
+            <button class="sidebar-toggle" id="toggle-sidebar">▶</button>
+            <nav>
+                <ul>
+                    <li><a href="#" class="active" onclick="showSection('admin-overview')">Overview</a></li>
+                    <li><a href="#" onclick="showSection('admin-tasks')">Task Management</a></li>
+                    <li><a href="#" onclick="showSection('admin-employees')">Employee Management</a></li>
+                </ul>
+            </nav>
+        </div>
+        <div class="content" id="content">
+            <div id="admin-overview" class="section">
+                <h3>Overview</h3>
+            </div>
+            <div id="admin-tasks" class="section hidden">
+                <h3>Task Management</h3>
+                <form id="taskForm">
+                    <input type="text" id="taskName" placeholder="Task Name" required>
+                    <textarea id="taskDesc" placeholder="Task Description" required></textarea>
+                    <input type="date" id="taskDeadline" placeholder="Deadline" required>
+                    <select id="employeeAssign" required>
+                        <option value="" disabled selected>Assign to Employee</option>
+                    </select>
+                    <button type="submit">Add Task</button>
+                </form>
+                <div id="task-list">
+                    <!-- Dynamically added tasks will appear here -->
+                </div>
+            </div>
+            <div id="admin-employees" class="section hidden">
+                <div class="manage-employee-container">
+                    <h3>Manage Employees</h3>
+                    <form id="addEmployeeForm">
+                        <input type="text" id="newUsername" placeholder="New Employee Username" required>
+                        <input type="password" id="newPassword" placeholder="New Employee Password" required>
+                        <button type="submit">Add Employee</button>
+                    </form>
+                    <div id="employee-list">
+                        <!-- Employee list will appear here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Employee Dashboard -->
+    <div id="employee-dashboard" class="page hidden">
+        <header>
+            <h2>Employee Dashboard</h2>
+            <button id="logout-btn-emp">Logout</button>
+        </header>
+        <div class="sidebar">
+            <nav>
+                <ul>
+                    <li><a href="#" class="active" onclick="showSection('employee-tasks')">My Tasks</a></li>
+                </ul>
+            </nav>
+        </div>
+        <div class="content">
+            <div id="employee-tasks" class="section">
+                <h3>My Tasks</h3>
+                <div id="employee-task-list">
+                
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let users = [
+            { username: "Admin", password: "admin", role: "admin" },
+            { username: "Employee", password: "employee123", role: "employee" }
+        ];
+
+        let tasks = [];
+
+        document.getElementById("loginForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+            const role = document.getElementById("role").value;
+            const user = users.find(user => user.username === username && user.password === password && user.role === role);
+
+            if (user) {
+                document.getElementById("login-page").classList.add("hidden");
+                if (user.role === "admin") {
+                    document.getElementById("admin-dashboard").classList.remove("hidden");
+                    displayEmployees();
+                } else {
+                    document.getElementById("employee-dashboard").classList.remove("hidden");
+                    displayEmployeeTasks(username); 
+                }
+            } else {
+                document.getElementById("login-error").textContent = "Invalid credentials!";
+            }
+        });
+
+        document.getElementById("taskForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+            const taskName = document.getElementById("taskName").value;
+            const taskDesc = document.getElementById("taskDesc").value;
+            const taskDeadline = document.getElementById("taskDeadline").value;
+            const employeeAssign = document.getElementById("employeeAssign").value;
+
+            const task = {
+                name: taskName,
+                desc: taskDesc,
+                assignedTo: employeeAssign,
+                deadline: taskDeadline,
+                completed: false
+            };
+
+            tasks.push(task);
+            displayTasks();
+        });
+
+        function displayTasks() {
+            const taskList = document.getElementById("task-list");
+            taskList.innerHTML = "";
+            tasks.forEach((task, index) => {
+                const taskCard = document.createElement("div");
+                taskCard.classList.add("task-card");
+                taskCard.innerHTML = `
+                    <h4>${task.name}</h4>
+                    <p>${task.desc}</p>
+                    <p>Assigned to: ${task.assignedTo}</p>
+                    <p>Deadline: ${task.deadline}</p>
+                    <p>Status: ${task.completed ? "Completed" : "Pending"}</p>
+                    <button onclick="markAsCompleted(${index})">Mark as Completed</button>
+                `;
+                taskList.appendChild(taskCard);
+            });
+        }
+
+        function displayEmployeeTasks(username) {
+            const employeeTaskList = document.getElementById("employee-task-list");
+            employeeTaskList.innerHTML = "";
+
+            tasks.filter(task => task.assignedTo === username).forEach((task, index) => {
+                const taskCard = document.createElement("div");
+                taskCard.classList.add("task-card");
+                taskCard.innerHTML = `
+                    <h4>${task.name}</h4>
+                    <p>${task.desc}</p>
+                    <p>Deadline: ${task.deadline}</p>
+                    <p>Status: ${task.completed ? "Completed" : "Pending"}</p>
+                    <button onclick="markAsCompleted(${index})">Mark as Completed</button>
+                `;
+                employeeTaskList.appendChild(taskCard);
+            });
+        }
+
+        function markAsCompleted(index) {
+            tasks[index].completed = true;
+            displayTasks();
+            const currentUser = users.find(user => user.role === 'employee');
+            if (currentUser) {
+                displayEmployeeTasks(currentUser.username);
+            }
+        }
+
+        document.getElementById("addEmployeeForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+            const newUsername = document.getElementById("newUsername").value;
+            const newPassword = document.getElementById("newPassword").value;
+
+            users.push({ username: newUsername, password: newPassword, role: "employee" });
+            displayEmployees();
+            alert("Employee added successfully!");
+        });
+
+        function displayEmployees() {
+            const employeeList = document.getElementById("employee-list");
+            const employeeAssign = document.getElementById("employeeAssign");
+            employeeList.innerHTML = "";
+            employeeAssign.innerHTML = '<option value="" disabled selected>Assign to Employee</option>';
+
+            users.filter(user => user.role === "employee").forEach(user => {
+                const employeeCard = document.createElement("div");
+                employeeCard.classList.add("task-card");
+                employeeCard.innerHTML = `<h4>${user.username}</h4><p>Employee</p>`;
+                employeeList.appendChild(employeeCard);
+
+                const option = document.createElement("option");
+                option.value = user.username;
+                option.textContent = user.username;
+                employeeAssign.appendChild(option);
+            });
+        }
+
+        document.getElementById("logout-btn").addEventListener("click", function () {
+            location.reload();
+        });
+
+        document.getElementById("logout-btn-emp").addEventListener("click", function () {
+            location.reload();
+        });
+
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(section => section.classList.add('hidden'));
+            document.getElementById(sectionId).classList.remove('hidden');
+        }
+
+        document.getElementById("toggle-sidebar").addEventListener("click", function () {
+            document.getElementById("sidebar").classList.toggle("collapsed");
+            document.getElementById("content").classList.toggle("collapsed");
+        });
+    </script>
+</body>
+</html>
